@@ -14,5 +14,23 @@
   },
   "resolutions": {
     "polymer": "^2.0.0"
-  }
+  },
+  "homepage": "https://github.com/HealthHub-Project/hh-report-image",
+  "authors": [
+    "mjkim"
+  ],
+  "description": "",
+  "keywords": [
+    "polymer",
+    "bower",
+    "vaadin-context-menu"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
 }
