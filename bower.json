@@ -22,8 +22,9 @@
   "description": "",
   "keywords": [
     "polymer",
-    "bower",
-    "vaadin-context-menu"
+    "healthhub",
+    "vaadin-context-menu",
+    "report-image"
   ],
   "license": "MIT",
   "ignore": [
@@ -32,5 +33,6 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "private": true
 }
