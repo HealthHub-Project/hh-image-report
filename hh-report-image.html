@@ -41,9 +41,11 @@ Custom property | Description | Default
 
       :host [part="overlay"] {
         width: 100px;
+        height: 273px;
       }
 
       /*vaadin-context-menu*/
+      /*canvas size?????*/
       .contextMenu-container {
         width: 100%;
         height: 100%;
@@ -67,8 +69,8 @@ Custom property | Description | Default
 
       .imageCanvas {
         background-color : #fff;
-        width: 100%;
-        height: 100%;
+        /*width: 100%;*/
+        /*height: 100%;*/
       }
 
     </style>
@@ -110,10 +112,9 @@ Custom property | Description | Default
 
       let oInfo;
       let oItems;
-
       // studyDescription
       let g_studyDesp;
-      // image 구조체
+      // image struct
       let g_reportImage;
 
       class HhReportImage extends Polymer.Element {
@@ -188,8 +189,8 @@ Custom property | Description | Default
         {
             let oCanvas = _this.getCanvas();
 
-            oCanvas.width = window.innerWidth;
-            oCanvas.height = window.innerHeight;
+            oCanvas.width = _this.offsetWidth;
+            oCanvas.height = _this.offsetHeight;
 
             oInfo.setClientSize(oCanvas.width, oCanvas.height);
         }

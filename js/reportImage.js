@@ -36,7 +36,7 @@ class ReportImage
         this._itemPoint = new Point(0, 0);
         this._scale = 1.0;
         this._g.scale(1.0, 1.0);
-        this._editMode = editMode.select;
+        this._editMode = editMode.pen;
         this._fontSize = 15;
         this._fontName = "Arial";
         this._color = "#04B404"; //04B404,FB4BFB
@@ -44,8 +44,8 @@ class ReportImage
         this._backImage.onload = () => this.onLoadImage();
 
         this._mouseStatus = new MouseStatus();
-
         this._selectedRect = new Rectangle();
+        this._addPens = [];
     }
 
     setClientSize(nWidth, nHeight) {
@@ -60,7 +60,7 @@ class ReportImage
     }
 
     onMouseDown(e) {
-        this.mouse.setDown(e.button, e.x / this._scale, e.y / this._scale);
+        this.mouse.setDown(e.button, e.offsetX / this._scale, e.offsetY / this._scale);
 
         if (this.editMode == editMode.move) {
             if (!this.selectedRect.contains(this.mouse.downPoint)) {
@@ -68,11 +68,17 @@ class ReportImage
                 this.draw();
             }
         }// if
+        else if (this.editMode == editMode.pen) {
+            if (this.mouse.isLeftDown) {
+                this.addPens = [];
+                this.drawAddPens(this.mouse.downPoint);
+            }// if
+        }// if
 
     }
 
     onMouseMove(e) {
-        this.mouse.setMove(e.x / this._scale, e.y / this._scale);
+        this.mouse.setMove(e.offsetX / this._scale, e.offsetY / this._scale);
 
         if (this.mouse.isDown) {
             if (this.editMode == editMode.select) {
@@ -83,11 +89,20 @@ class ReportImage
                 this.setMove();
                 this.draw();
             }
+            else if (this.editMode == editMode.line) {
+                this.draw();
+            }
+            else if (this.editMode == editMode.ellipse) {
+                this.draw();
+            }
+            else if (this.editMode == editMode.pen) {
+                this.drawAddPens(this.mouse.movePoint);
+            }
         }
     }
 
     onMouseUp(e) {
-        this.mouse.setUp(e.x / this._scale, e.y / this.scale);
+        this.mouse.setUp(e.offsetX / this._scale, e.offsetY / this.scale);
 
         if (this.editMode == editMode.select) {
             this.setSelection();
@@ -99,8 +114,133 @@ class ReportImage
         else if (this.editMode == editMode.move) {
             this.setSelection();
         }
+        else if (this.editMode == editMode.line) {
+            this.addItem();
+        }
+        else if (this.editMode == editMode.ellipse) {
+            this.addItem();
+        }
+        else if (this.editMode == editMode.pen) {
+            this.drawAddPens(this.mouse.upPoint);
+            this.addItem();
+        }
 
         this.draw();
+    }
+
+    //9999
+    addItem() {
+        if (this.editMode == editMode.line) {
+            let ptDown = this.mouse.downPoint;
+            let ptUp = this.mouse.upPoint;
+
+            let rcClient = this.getClientBounds();
+
+            ptDown.x = parseInt(ptDown.x) - parseInt(rcClient.x);
+            ptDown.y = parseInt(ptDown.y) - parseInt(rcClient.y);
+            ptUp.x = parseInt(ptUp.x) - parseInt(rcClient.x);
+            ptUp.y = parseInt(ptUp.y) - parseInt(rcClient.y);
+
+            let oItem = {
+                style: "line",
+                points:[
+                ]
+            };
+
+            let oPt1 = {
+                "x" : ptDown.x,
+                "y" : ptDown.y
+            };
+
+            let oPt2 = {
+                "x" : ptUp.x,
+                "y" : ptUp.y
+            };
+
+            oItem.points.push(oPt1);
+            oItem.points.push(oPt2);
+
+            this._drawItems.items.push(oItem);
+        }
+        else if (this.editMode == editMode.ellipse) {
+            let ptDown = this.mouse.downPoint;
+            let ptUp = this.mouse.upPoint;
+
+            let rcClient = this.getClientBounds();
+
+            ptDown.x = parseInt(ptDown.x) - parseInt(rcClient.x);
+            ptDown.y = parseInt(ptDown.y) - parseInt(rcClient.y);
+            ptUp.x = parseInt(ptUp.x) - parseInt(rcClient.x);
+            ptUp.y = parseInt(ptUp.y) - parseInt(rcClient.y);
+
+            let oItem = {
+                style: "ellipse",
+                points:[
+                ]
+            };
+
+            let oPt1 = {
+                "x" : ptDown.x,
+                "y" : ptDown.y
+            }
+
+            let oPt2 = {
+                "x" : ptUp.x,
+                "y" : ptUp.y
+            }
+
+            oItem.points.push(oPt1);
+            oItem.points.push(oPt2);
+
+            this._drawItems.items.push(oItem);
+        }
+        else if (this.editMode == editMode.pen) {
+            let rcClient = this.getClientBounds();
+
+            if (this.addPens.length > 2)
+            {
+                let oItem = {
+                    style: "pen",
+                    points:[
+                    ]
+                };
+
+                for (let i = 0; i < this.addPens.length; i++) {
+                    let ptXY = this.addPens[i];
+
+                    let nX = parseInt(ptXY.x) - parseInt(rcClient.x);
+                    let nY = parseInt(ptXY.y) - parseInt(rcClient.y);
+
+                    let oPt = {
+                        "x" : nX,
+                        "y" : nY
+                    };
+
+                    oItem.points.push(oPt);
+                }// for
+
+                this._drawItems.items.push(oItem);
+            }// if
+        }
+    }
+
+    drawAddPens(ptXY) {
+        if (this.addPens.length > 0) {
+            let ptPrev = this.addPens[this.addPens.length - 1];
+
+            let ptChk = new Point(0, 0);
+            ptChk.x = Math.abs(ptPrev.x - ptXY.x);
+            ptChk.y = Math.abs(ptPrev.y - ptXY.y);
+
+            if (ptChk.x > 2 || ptChk.y > 2) {
+                this.addPens.push(new Point(ptXY.x, ptXY.y));
+
+                h.drawLine(this.g, ptPrev.x, ptPrev.y, ptXY.x, ptXY.y, this._color, true);
+            }
+        }
+        else {
+            this.addPens.push(new Point(ptXY.x, ptXY.y));
+        }
     }
 
     setSelection() {
@@ -260,23 +400,29 @@ class ReportImage
 
         this.drawBackground();
 
-        let rcClient = new Rectangle(0, 0, this._clientSize.width, this._clientSize.height);
-
-        rcClient.x = rcClient.x + this.imagePoint.x;
-        rcClient.y = rcClient.y + this.imagePoint.y;
+        let rcClient = this.getClientBounds();
 
         if (typeof this._drawItems === "object" && typeof this._drawItems.items === "object" )
         {
             this.drawItems(this._drawItems.items, rcClient);
         }
 
-        this.drawSelection(rcClient);
+        this.drawEditing(rcClient);
 
         h.drawError(this._Errors);
         this.drawDebug();
     }
 
-    drawSelection(rcClient) {
+    getClientBounds() {
+        let rcClient = new Rectangle(0, 0, this._clientSize.width, this._clientSize.height);
+
+        rcClient.x = rcClient.x + this.imagePoint.x;
+        rcClient.y = rcClient.y + this.imagePoint.y;
+
+        return rcClient;
+    }
+
+    drawEditing(rcClient) {
         if (this.editMode == editMode.select)
         {
             if (this.mouse.isDown) {
@@ -296,6 +442,28 @@ class ReportImage
             // rcMove.y = rcMove.y + rcClient.y;
 
             h.drawMove(this.g, rcMove.x, rcMove.y, rcMove.width, rcMove.height);
+        }
+        else if (this.editMode == editMode.line) {
+            if (this.mouse.isLeftDown) {
+                let ptDown = this.mouse.downPoint;
+                let ptMove = this.mouse.movePoint;
+
+                h.drawLine(this.g, ptDown.x, ptDown.y, ptMove.x, ptMove.y, this._color, true);
+            }
+        }
+        else if (this.editMode == editMode.ellipse) {
+            if (this.mouse.isLeftDown) {
+                let ptDown = this.mouse.downPoint;
+                let ptMove = this.mouse.movePoint;
+
+                let rcItem = new Rectangle(0, 0, 0, 0);
+                rcItem.x = Math.min(ptDown.x, ptMove.x);
+                rcItem.y = Math.min(ptDown.y, ptMove.y);
+                rcItem.width = Math.max(ptDown.x, ptMove.x) - rcItem.x;
+                rcItem.height = Math.max(ptMove.y, ptMove.y) - rcItem.y;
+
+                h.drawEllipse(this.g, rcItem, this._color, true);
+            }
         }
     }
 
@@ -354,22 +522,7 @@ class ReportImage
                     rcClient2.width = rcItem.width;
                     rcClient2.height = rcItem.height;
 
-                    if (oItem.selected) {
-                        this.g.save();
-
-                        this.g.shadowColor = "#898";
-                        this.g.shadowBlur = 5;
-                        this.g.shadowOffsetX = 5;
-                        this.g.shadowOffsetY = 5;
-
-                        h.drawEllipse(this.g, rcItem.x, rcItem.y, rcItem.width, rcItem.height, "#FB4BFB");
-
-                        this.g.restore();
-                    }
-                    else {
-                        h.drawEllipse(this.g, rcItem.x, rcItem.y, rcItem.width, rcItem.height, this._color);
-                    }
-
+                    h.drawEllipse(this.g, rcItem, this._color, oItem.selected);
                 }
             }
             else if (sStyle == "text") {
@@ -431,29 +584,7 @@ class ReportImage
 
                     oItem.rect = rcDraw;
 
-                    this.g.beginPath();
-                    this.g.moveTo(n1x, n1y);
-                    this.g.lineTo(n2x, n2y);
-                    this.g.closePath();
-
-                    this.g.save();
-
-                    if (oItem.selected) {
-
-                        this.g.shadowColor = "#898";
-                        this.g.shadowBlur = 5;
-                        this.g.shadowOffsetX = 5;
-                        this.g.shadowOffsetY = 5;
-
-                        this.g.strokeStyle = "#FB4BFB";
-                    }
-                    else {
-                        this.g.strokeStyle = this._color;
-                    }
-
-                    this.g.stroke();
-
-                    this.g.restore();
+                    h.drawLine(this.g, n1x, n1y, n2x, n2y, this._color, oItem.selected);
                 }
             }
             else if (sStyle == "pen") {
@@ -558,8 +689,14 @@ class ReportImage
 
         rcDraw = h.drawText(this.g, this.scaleText, 10, rcDraw.bottom, "red", 20, "", "bold");
         rcDraw = h.drawText(this.g, this.editMode, 10, rcDraw.bottom, "red", 20, "", "");
+    }
 
+    get addPens() {
+        return this._addPens;
+    }
 
+    set addPens(aoPens) {
+        this._addPens = aoPens;
     }
 
     get mouse() {
@@ -756,7 +893,26 @@ class h {
         oCtx.lineWidth = nLineWidth;
     }
 
-    static drawEllipse(oCtx, nX, nY, nWidth, nHeight, sColor = "black") {
+    static drawEllipse(oCtx, rc, sColor, bSelected) {
+
+        if (bSelected) {
+            oCtx.save();
+
+            oCtx.shadowColor = "#898";
+            oCtx.shadowBlur = 5;
+            oCtx.shadowOffsetX = 5;
+            oCtx.shadowOffsetY = 5;
+
+            h.drawEllipse2(oCtx, rc.x, rc.y, rc.width, rc.height, "#FB4BFB");
+
+            oCtx.restore();
+        }
+        else {
+            h.drawEllipse2(oCtx, rc.x, rc.y, rc.width, rc.height, sColor);
+        }
+    }
+
+    static drawEllipse2(oCtx, nX, nY, nWidth, nHeight, sColor = "black") {
         let PI2=Math.PI*2;
         let ratio=nHeight/nWidth;
         let radius=Math.max(nWidth,nHeight)/2;
@@ -842,6 +998,33 @@ class h {
         return rcDraw;
     }
 
+    static drawLine(oCtx, n1x, n1y, n2x, n2y, sColor, bSelected) {
+
+        oCtx.beginPath();
+        oCtx.moveTo(n1x, n1y);
+        oCtx.lineTo(n2x, n2y);
+        oCtx.closePath();
+
+        oCtx.save();
+
+        if (bSelected) {
+
+            oCtx.shadowColor = "#898";
+            oCtx.shadowBlur = 5;
+            oCtx.shadowOffsetX = 5;
+            oCtx.shadowOffsetY = 5;
+
+            oCtx.strokeStyle = "#FB4BFB";
+        }
+        else {
+            oCtx.strokeStyle = sColor;
+        }
+
+        oCtx.stroke();
+
+        oCtx.restore();
+    }
+
     static addError(sSubject, sDetail, sName) {
 
         let oErr = new Error();
@@ -925,6 +1108,23 @@ class MouseStatus {
         this._movePoint = ptMove;
     }
 
+    get upPoint() {
+        return this._upPoint;
+    }
+
+    set upPoint(ptUp) {
+        this._upPoint = ptUp;
+    }
+
+    get isLeftDown() {
+        if (this.isDown && this._button == 0)
+        {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }
 
 class Error {
