@@ -43,7 +43,7 @@ Custom property | Description | Default
 
       /*vaadin-context-menu-overlay*/
       :host [part="overlay"] {
-        width: 200px;
+        width: 100px;
         height: 273px;
       }
 
@@ -86,7 +86,7 @@ Custom property | Description | Default
           <vaadin-item id="itemEllipse" class="contextMenu-item" on-click="onEllipse">Ellipse</vaadin-item>
           <vaadin-item id="itemText" class="contextMenu-item-disabled" on-click="onText" disabled>Text</vaadin-item>
           <div class="menu-separator"></div>
-          <vaadin-item id="itemSelect" class="contextMenu-item" on-click="onSelect">Select&Move</vaadin-item>
+          <vaadin-item id="itemSelect" class="contextMenu-item" on-click="onSelect">Select</vaadin-item>
           <vaadin-item id="itemDelete" class="contextMenu-item-disabled" on-click="onDelete" disabled>Delete</vaadin-item>
           <vaadin-item id="itemReset" class="contextMenu-item-disabled" on-click="onReset" disabled>Reset</vaadin-item>
         </vaadin-list-box>
@@ -221,7 +221,7 @@ Custom property | Description | Default
             let oCanvas = _this.getCanvas();
 
             oCanvas.width = _this.offsetWidth;
-            oCanvas.height = 400;
+            oCanvas.height = 300;
 
             // oCanvas.width = 400;
             // oCanvas.height = 400;
