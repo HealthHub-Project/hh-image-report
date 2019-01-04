@@ -6,7 +6,6 @@
 <script src="js/backgroundImage.js"></script>
 <script src="js/reportImage.js"></script>
 
-
 <!--
 ### Desc
 Report Image 컴포넌트
@@ -17,10 +16,11 @@ default menu width : 100px;
 
 Custom property | Description | Default
 ----------------|-------------|----------
-`--contextMenu-background-color`  | menu background color       | #2d333f
-`--contextMenu-border`            | menu border                 | #4c5667
-`--contextMenuItem-font-color`    | menu font color             | #aaaaaa
-`--contextMenuItem-hover-color`   | menu hover background color | #0087cb
+`--contextMenu-background-color`           | menu background color       | #2d333f
+`--contextMenu-border`                     | menu border                 | 1px solid #4C5667
+`--contextMenuItem-font-color`             | menu font color             | #aaaaaa
+`--contextMenuItem-disabled-font-color`    | menu font color             | #4c5667
+`--contextMenuItem-hover-color`            | menu hover background color | #0087cb
 -->
 
 <dom-module id="hh-report-image" theme-for="vaadin-context-menu-overlay">
@@ -31,24 +31,20 @@ Custom property | Description | Default
         --contextMenu-background-color: #2d333f;
         --contextMenu-border: 1px solid #4C5667;
         --contextMenuItem-font-color: #aaaaaa;
+        --contextMenuItem-disabled-font-color: #4C5667;
         --contextMenuItem-hover-color: #0087cb;
       }
 
+      /*vaadin-context-menu*/
       :host [part="content"] {
         background-color : var(--contextMenu-background-color);
         border : var(--contextMenu-border);
       }
 
+      /*vaadin-context-menu-overlay*/
       :host [part="overlay"] {
-        width: 100px;
+        width: 200px;
         height: 273px;
-      }
-
-      /*vaadin-context-menu*/
-      /*canvas size?????*/
-      .contextMenu-container {
-        width: 100%;
-        height: 100%;
       }
 
       /*vaadin-item*/
@@ -61,6 +57,11 @@ Custom property | Description | Default
         color: var(--contextMenuItem-hover-color);
       }
 
+      .contextMenu-item-disabled {
+        color: var(--contextMenuItem-disabled-font-color);
+        text-align: center;
+      }
+
       .menu-separator {
         border-bottom: 1px solid #4C5667;
         margin-top: 5px;
@@ -69,8 +70,9 @@ Custom property | Description | Default
 
       .imageCanvas {
         background-color : #fff;
-        /*width: 100%;*/
-        /*height: 100%;*/
+        /*report쪽에 들어갔을때 꽉참*/
+        width: 100%;
+        height: 100%;
       }
 
     </style>
@@ -79,15 +81,14 @@ Custom property | Description | Default
     <vaadin-context-menu id="contextMenuContainer" class="contextMenu-container" selector="canvas">
       <template is="dom-repeat">
         <vaadin-list-box>
-          <!--<vaadin-item id="{{contextMenu.id}}" class="contextMenu-item">{{contextMenu.name}}</vaadin-item>-->
-          <vaadin-item id="itemSelect" class="contextMenu-item" on-click="onSelect">Select</vaadin-item>
-          <vaadin-item id="itemDelete" class="contextMenu-item" on-click="onDelete">Delete</vaadin-item>
-          <vaadin-item id="itemReset" class="contextMenu-item" on-click="onReset">Reset</vaadin-item>
-          <div class="menu-separator"></div>
+          <vaadin-item id="itemPen" class="contextMenu-item" on-click="onPen">Pen</vaadin-item>
           <vaadin-item id="itemLine" class="contextMenu-item" on-click="onLine">Line</vaadin-item>
           <vaadin-item id="itemEllipse" class="contextMenu-item" on-click="onEllipse">Ellipse</vaadin-item>
-          <vaadin-item id="itemPen" class="contextMenu-item" on-click="onPen">Pen</vaadin-item>
-          <vaadin-item id="itemText" class="contextMenu-item" on-click="onText">Text</vaadin-item>
+          <vaadin-item id="itemText" class="contextMenu-item-disabled" on-click="onText" disabled>Text</vaadin-item>
+          <div class="menu-separator"></div>
+          <vaadin-item id="itemSelect" class="contextMenu-item" on-click="onSelect">Select&Move</vaadin-item>
+          <vaadin-item id="itemDelete" class="contextMenu-item-disabled" on-click="onDelete" disabled>Delete</vaadin-item>
+          <vaadin-item id="itemReset" class="contextMenu-item-disabled" on-click="onReset" disabled>Reset</vaadin-item>
         </vaadin-list-box>
       </template>
 
@@ -142,8 +143,8 @@ Custom property | Description | Default
         }
 
         /**
-         * caseID별 studyDescription, Image 구조체 조회
          * function getStructImage
+         * caseID별 studyDescription, Image 구조체 조회
          *
          * Create by 김민정 on 2018-12-28 오후 5:50
          * @param {Object} structImage
@@ -164,8 +165,38 @@ Custom property | Description | Default
         }
 
         /**
-         * Image 구조체 초기화
+         * function setStructImage
+         * Approve시 Image 구조체 저장
+         *
+         * Create by 김민정 on 2019-01-04 오후 12:05
+         * @param {} 
+         * @return {}
+        **/
+        setStructImage() {
+            let param = {};
+            param.detail = oInfo.getValue();
+
+            _this.dispatchEvent(new CustomEvent('setStructImageEvent', param));
+        }
+
+        /**
+         * function setReportImage
+         * report에 전달할 image
+         *
+         * Create by 김민정 on 2019-01-04 오후 2:55
+         * @param {}
+         * @return {}
+        **/
+        setReportImage() {
+            let param = {};
+            param.detail = oInfo.getImage();
+
+            _this.dispatchEvent(new CustomEvent('setReportImageEvent', param));
+        }
+
+        /**
          * function clearStructImage
+         * Image 구조체 초기화
          *
          * Create by 김민정 on 2019-01-02 오후 12:47
          * @param {} 
@@ -190,7 +221,10 @@ Custom property | Description | Default
             let oCanvas = _this.getCanvas();
 
             oCanvas.width = _this.offsetWidth;
-            oCanvas.height = _this.offsetHeight;
+            oCanvas.height = 400;
+
+            // oCanvas.width = 400;
+            // oCanvas.height = 400;
 
             oInfo.setClientSize(oCanvas.width, oCanvas.height);
         }
@@ -244,39 +278,15 @@ Custom property | Description | Default
         }
 
         /**
-         * function onSelect
-         * 선택 Event
+         * function onPen
+         * Pen Draw Event
          *
-         * Create by 김민정 on 2018-12-05 오전 10:26
+         * Create by 김민정 on 2018-12-05 오전 10:27
          * @param {}
          * @return {}
          **/
-        onSelect() {
-            oInfo._editMode = editMode.select;
-        }
-
-        /**
-         * function onDelete
-         * 선택 삭제 Event
-         *
-         * Create by 김민정 on 2018-12-05 오전 10:26
-         * @param {}
-         * @return {}
-         **/
-        onDelete() {
-            alert("onDelete");
-        }
-
-        /**
-         * function onReset
-         * 전체삭제 Event
-         *
-         * Create by 김민정 on 2018-12-05 오전 10:26
-         * @param {}
-         * @return {}
-         **/
-        onReset() {
-            alert("onReset");
+        onPen() {
+            oInfo._editMode = editMode.pen;
         }
 
         /**
@@ -304,18 +314,6 @@ Custom property | Description | Default
         }
 
         /**
-         * function onPen
-         * Pen Draw Event
-         *
-         * Create by 김민정 on 2018-12-05 오전 10:27
-         * @param {}
-         * @return {}
-         **/
-        onPen() {
-            oInfo._editMode = editMode.pen;
-        }
-
-        /**
          * function onText
          * Text Event
          *
@@ -325,6 +323,42 @@ Custom property | Description | Default
          **/
         onText() {
             oInfo._editMode = editMode.text;
+        }
+
+        /**
+         * function onSelect
+         * Select Event
+         *
+         * Create by 김민정 on 2018-12-05 오전 10:26
+         * @param {}
+         * @return {}
+         **/
+        onSelect() {
+            oInfo._editMode = editMode.select;
+        }
+
+        /**
+         * function onDelete
+         * Select Delete Event
+         *
+         * Create by 김민정 on 2018-12-05 오전 10:26
+         * @param {}
+         * @return {}
+         **/
+        onDelete() {
+            alert("onDelete");
+        }
+
+        /**
+         * function onReset
+         * All Reset Event
+         *
+         * Create by 김민정 on 2018-12-05 오전 10:26
+         * @param {}
+         * @return {}
+         **/
+        onReset() {
+            alert("onReset");
         }
 
       }

@@ -29,13 +29,13 @@ class ReportImage
 
         h.setInit();
 
-        this._g = oCanvas.getContext("2d");
+        this._canvas = oCanvas;
+        this._g = this._canvas.getContext("2d");
         this._baseSize = new Size(350, 295);
-        this._clientSize = new Size(oCanvas.width, oCanvas.height);
+        this._clientSize = new Size(this._canvas.width, this._canvas.height);
         this._imagePoint = new Point(0, 0);
         this._itemPoint = new Point(0, 0);
         this._scale = 1.0;
-        this._g.scale(1.0, 1.0);
         this._editMode = editMode.pen;
         this._fontSize = 15;
         this._fontName = "Arial";
@@ -62,6 +62,11 @@ class ReportImage
     onMouseDown(e) {
         this.mouse.setDown(e.button, e.offsetX / this._scale, e.offsetY / this._scale);
 
+        let img = this.getImage();
+
+        // let oWin = window.open("");
+        // oWin.document.write("<img src='" + img + "' >");
+
         if (this.editMode == editMode.move) {
             if (!this.selectedRect.contains(this.mouse.downPoint)) {
                 this.editMode = editMode.select;
@@ -80,7 +85,7 @@ class ReportImage
     onMouseMove(e) {
         this.mouse.setMove(e.offsetX / this._scale, e.offsetY / this._scale);
 
-        if (this.mouse.isDown) {
+        if (this.mouse.isDown && this.mouse.isLeftDown) {
             if (this.editMode == editMode.select) {
                 this.setSelection();
                 this.draw();
@@ -104,23 +109,23 @@ class ReportImage
     onMouseUp(e) {
         this.mouse.setUp(e.offsetX / this._scale, e.offsetY / this.scale);
 
-        if (this.editMode == editMode.select) {
+        if (this.editMode == editMode.select && e.button === 0) {
             this.setSelection();
 
             if (!this.selectedRect.isEmpty()) {
                 this.editMode = editMode.move;
             }
         }
-        else if (this.editMode == editMode.move) {
+        else if (this.editMode == editMode.move && e.button === 0) {
             this.setSelection();
         }
-        else if (this.editMode == editMode.line) {
+        else if (this.editMode == editMode.line && e.button === 0) {
             this.addItem();
         }
-        else if (this.editMode == editMode.ellipse) {
+        else if (this.editMode == editMode.ellipse && e.button === 0) {
             this.addItem();
         }
-        else if (this.editMode == editMode.pen) {
+        else if (this.editMode == editMode.pen && e.button === 0) {
             this.drawAddPens(this.mouse.upPoint);
             this.addItem();
         }
@@ -394,23 +399,86 @@ class ReportImage
         this.draw();
     }
 
+    getImage() {
+        let sRet = "";
+
+        // let nCanvasWidth = this._canvas.width;
+        // let nCanvasHeight = this._canvas.height;
+
+        // this._canvas.width = this._baseSize.width;
+        // this._canvas.height = this._baseSize.height;
+
+        // let nClientWidth = this._clientSize.width;
+        // let nClientHeight = this._clientSize.height;
+
+        // this._clientSize.width = this._baseSize.width;
+        // this._clientSize.height = this._baseSize.height;
+
+        // let nScale = this.scale;
+        // this.scale = 1;
+
+        // let nImagePointX = this.imagePoint.x;
+        // let nImagePointY = this.imagePoint.y;
+        // this.imagePoint.x = nImagePointX;
+        // this.imagePoint.y = nImagePointY;
+
+        this._g.clearRect(0, 0, this._clientSize.width, this._clientSize.height);
+
+        let nCanvasWidth = this._canvas.width;
+        let nCanvasHeight = this._canvas.height;
+
+        this._canvas.width = this._baseSize.width;
+        this._canvas.height = this._baseSize.height;
+        this.setClientSize(this._baseSize.width, this._baseSize.height);
+
+        this.draw2(this._g, false);
+
+        sRet = this._canvas.toDataURL("image/png");
+
+        //restore
+        this._canvas.width = nCanvasWidth;
+        this._canvas.height = nCanvasHeight;
+        this.setClientSize(nCanvasWidth, nCanvasHeight);
+
+        return sRet;
+    }
+
+    getValue() {
+        let sRet = "";
+
+        if (typeof this._drawItems === "object" && typeof this._drawItems.items === "object" )
+        {
+            if (this._drawItems.items.length > 0) {
+                sRet = JSON.stringify(this._drawItems);
+            }
+        }
+
+        return sRet;
+    }
+
     draw()
     {
-        this.g.clearRect(0, 0, this._clientSize.width, this._clientSize.height);
+        this.draw2(this.g);
+    }
 
-        this.drawBackground();
+    draw2(oCtx, bReal = true) {
+        oCtx.clearRect(0, 0, this._clientSize.width, this._clientSize.height);
+
+        this.drawBackground(oCtx);
 
         let rcClient = this.getClientBounds();
 
         if (typeof this._drawItems === "object" && typeof this._drawItems.items === "object" )
         {
-            this.drawItems(this._drawItems.items, rcClient);
+            this.drawItems(oCtx, this._drawItems.items, rcClient);
         }
 
-        this.drawEditing(rcClient);
+        if (bReal) {
+            this.drawEditing(oCtx, rcClient);
 
-        h.drawError(this._Errors);
-        this.drawDebug();
+            h.drawError(oCtx, this._Errors);
+            this.drawDebug(oCtx);
+        }
     }
 
     getClientBounds() {
@@ -422,12 +490,12 @@ class ReportImage
         return rcClient;
     }
 
-    drawEditing(rcClient) {
+    drawEditing(oCtx, rcClient) {
         if (this.editMode == editMode.select)
         {
             if (this.mouse.isDown) {
                 let rcMove = this.mouse.getMoveRect();
-                h.drawSelect(this.g, rcMove.x, rcMove.y, rcMove.width, rcMove.height);
+                h.drawSelect(oCtx, rcMove.x, rcMove.y, rcMove.width, rcMove.height);
             }
         }
         else if (this.editMode == editMode.move) {
@@ -441,14 +509,14 @@ class ReportImage
             // rcMove.x = rcMove.x + rcClient.x;
             // rcMove.y = rcMove.y + rcClient.y;
 
-            h.drawMove(this.g, rcMove.x, rcMove.y, rcMove.width, rcMove.height);
+            h.drawMove(oCtx, rcMove.x, rcMove.y, rcMove.width, rcMove.height);
         }
         else if (this.editMode == editMode.line) {
             if (this.mouse.isLeftDown) {
                 let ptDown = this.mouse.downPoint;
                 let ptMove = this.mouse.movePoint;
 
-                h.drawLine(this.g, ptDown.x, ptDown.y, ptMove.x, ptMove.y, this._color, true);
+                h.drawLine(oCtx, ptDown.x, ptDown.y, ptMove.x, ptMove.y, this._color, true);
             }
         }
         else if (this.editMode == editMode.ellipse) {
@@ -462,12 +530,12 @@ class ReportImage
                 rcItem.width = Math.max(ptDown.x, ptMove.x) - rcItem.x;
                 rcItem.height = Math.max(ptMove.y, ptMove.y) - rcItem.y;
 
-                h.drawEllipse(this.g, rcItem, this._color, true);
+                h.drawEllipse(oCtx, rcItem, this._color, true);
             }
         }
     }
 
-    drawItems(aoItems, rcClient) {
+    drawItems(oCtx, aoItems, rcClient) {
         if (!h.isEmpty(aoItems)) {
             if (this.editMode == editMode.move) {
                 this.selectedRect.clear();
@@ -476,7 +544,7 @@ class ReportImage
             for (let i = 0; i < aoItems.length; i++) {
                 let oItem = aoItems[i];
 
-                this.drawItem(oItem, rcClient);
+                this.drawItem(oCtx, oItem, rcClient);
 
                 if (oItem.selected) {
                     if (this.editMode == editMode.move) {
@@ -489,7 +557,7 @@ class ReportImage
         }// if
     }
 
-    drawItem(oItem, rcClient) {
+    drawItem(oCtx, oItem, rcClient) {
         if (!h.isEmpty(oItem)) {
             let rcClient2 = new Rectangle(0, 0, 0, 0);
 
@@ -522,7 +590,7 @@ class ReportImage
                     rcClient2.width = rcItem.width;
                     rcClient2.height = rcItem.height;
 
-                    h.drawEllipse(this.g, rcItem, this._color, oItem.selected);
+                    h.drawEllipse(oCtx, rcItem, this._color, oItem.selected);
                 }
             }
             else if (sStyle == "text") {
@@ -543,19 +611,19 @@ class ReportImage
 
                     if (oItem.selected) {
 
-                        this.g.save();
+                        oCtx.save();
 
-                        this.g.shadowColor = "#898";
-                        this.g.shadowBlur = 5;
-                        this.g.shadowOffsetX = 5;
-                        this.g.shadowOffsetY = 5;
+                        oCtx.shadowColor = "#898";
+                        oCtx.shadowBlur = 5;
+                        oCtx.shadowOffsetX = 5;
+                        oCtx.shadowOffsetY = 5;
 
-                        rcDraw = h.drawText(this.g, sValue, n1x, n1y, "#FB4BFB");
+                        rcDraw = h.drawText(oCtx, sValue, n1x, n1y, "#FB4BFB");
 
-                        this.g.restore();
+                        oCtx.restore();
                     }
                     else {
-                        rcDraw = h.drawText(this.g, sValue, n1x, n1y, this._color);
+                        rcDraw = h.drawText(oCtx, sValue, n1x, n1y, this._color);
                     }
 
                     oItem.rect = rcDraw;
@@ -584,7 +652,7 @@ class ReportImage
 
                     oItem.rect = rcDraw;
 
-                    h.drawLine(this.g, n1x, n1y, n2x, n2y, this._color, oItem.selected);
+                    h.drawLine(oCtx, n1x, n1y, n2x, n2y, this._color, oItem.selected);
                 }
             }
             else if (sStyle == "pen") {
@@ -619,28 +687,28 @@ class ReportImage
 
                             oItem.rect = rcDraw;
 
-                            this.g.save();
+                            oCtx.save();
 
-                            this.g.beginPath();
-                            this.g.moveTo(n1x, n1y);
-                            this.g.lineTo(n2x, n2y);
-                            this.g.closePath();
+                            oCtx.beginPath();
+                            oCtx.moveTo(n1x, n1y);
+                            oCtx.lineTo(n2x, n2y);
+                            oCtx.closePath();
 
                             if (oItem.selected) {
-                                this.g.shadowColor = "#898";
-                                this.g.shadowBlur = 5;
-                                this.g.shadowOffsetX = 5;
-                                this.g.shadowOffsetY = 5;
+                                oCtx.shadowColor = "#898";
+                                oCtx.shadowBlur = 5;
+                                oCtx.shadowOffsetX = 5;
+                                oCtx.shadowOffsetY = 5;
 
-                                this.g.strokeStyle = "#FB4BFB";
+                                oCtx.strokeStyle = "#FB4BFB";
                             }
                             else {
-                                this.g.strokeStyle = this._color;
+                                oCtx.strokeStyle = this._color;
                             }
 
-                            this.g.stroke();
+                            oCtx.stroke();
 
-                            this.g.restore();
+                            oCtx.restore();
                         }
                     }// for i
                 }
@@ -650,13 +718,13 @@ class ReportImage
 
             if (aoItems != "undefined" && aoItems != null) {
                 if (aoItems.length > 0) {
-                    this.drawItems(oItem.items, rcClient2);
+                    this.drawItems(oCtx, oItem.items, rcClient2);
                 }// if
             }// if
         }// if
     }
 
-    drawBackground() {
+    drawBackground(oCtx) {
         let rcImage = new Rectangle(0, 0, this._baseSize.width, this._baseSize.height);
         let rcClient = new Rectangle(0, 0, this._clientSize.width / this.scale, this._clientSize.height / this.scale);
 
@@ -679,16 +747,15 @@ class ReportImage
             this.itemPoint.y = Math.abs(rcImage.width - rcImage.height) * 3 + (Math.abs(rcImage.width - rcImage.height) / 2);
         }
 
-        this.g.drawImage(this._backImage, rcImage.x, rcImage.y, rcImage.width, rcImage.height);
-        // this.g.strokeStyle = "red";
-        // this.g.strokeRect(rcImage.x, rcImage.y, rcImage.width, rcImage.height);
+        oCtx.drawImage(this._backImage, rcImage.x, rcImage.y, rcImage.width, rcImage.height);
     }
 
-    drawDebug() {
+    drawDebug(oCtx) {
         let rcDraw = new Rectangle(0, 10, 0, 0);
 
-        rcDraw = h.drawText(this.g, this.scaleText, 10, rcDraw.bottom, "red", 20, "", "bold");
-        rcDraw = h.drawText(this.g, this.editMode, 10, rcDraw.bottom, "red", 20, "", "");
+        rcDraw = h.drawText(oCtx, this.scaleText, 10, rcDraw.bottom, "red", 20, "", "bold");
+        rcDraw = h.drawText(oCtx, this.editMode, 10, rcDraw.bottom, "red", 20, "", "");
+        rcDraw = h.drawText(oCtx, this.scale, 10, rcDraw.bottom, "red", 20, "", "");
     }
 
     get addPens() {
@@ -723,6 +790,8 @@ class ReportImage
         this._scale = nScale;
 
         if (this.g !== "undefine") {
+            this.g.setTransform(1, 0, 0, 1, 0 , 0);
+
             this.g.scale(this._scale, this._scale);
         }
     }
@@ -832,7 +901,6 @@ class h {
 
         let nLineWidth = oCtx.lineWidth;
         oCtx.lineWidth = 1;
-        oCtx.scale(1.0, 1.0);
 
         oCtx.beginPath();
 
