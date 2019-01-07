@@ -157,8 +157,8 @@ Custom property | Description | Default
                 g_studyDesp = structImage.studyDescription;
             }
 
-            if(structImage.reportPaint !== undefined) {
-                g_reportImage = structImage.reportPaint;
+            if(structImage.reportImage !== undefined) {
+                g_reportImage = structImage.reportImage;
             }
 
             _this.onLoadBody();
@@ -220,11 +220,8 @@ Custom property | Description | Default
         {
             let oCanvas = _this.getCanvas();
 
-            oCanvas.width = _this.offsetWidth;
-            oCanvas.height = 300;
-
-            // oCanvas.width = 400;
-            // oCanvas.height = 400;
+            oCanvas.width = 380;
+            oCanvas.height = 355;
 
             oInfo.setClientSize(oCanvas.width, oCanvas.height);
         }
