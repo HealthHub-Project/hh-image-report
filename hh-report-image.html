@@ -142,7 +142,10 @@ Custom property | Description | Default
 
         ready() {
             super.ready();
-            _this.onLoadBody();
+
+            window.addEventListener('WebComponentsReady', e => {
+                _this.onLoadBody();
+            });
         }
 
         /**
