@@ -16,6 +16,7 @@ default menu width : 100px;
 
 Custom property | Description | Default
 ----------------|-------------|----------
+`--imageCanvas-background-color`           | canvas background color     | #fff
 `--contextMenu-background-color`           | menu background color       | #2d333f
 `--contextMenu-border`                     | menu border                 | 1px solid #4C5667
 `--contextMenuItem-font-color`             | menu font color             | #aaaaaa
@@ -28,6 +29,7 @@ Custom property | Description | Default
     <style>
       :host {
         display: block;
+        --imageCanvas-background-color: #fff;
         --contextMenu-background-color: #2d333f;
         --contextMenu-border: 1px solid #4C5667;
         --contextMenuItem-font-color: #aaaaaa;
@@ -69,10 +71,11 @@ Custom property | Description | Default
       }
 
       .imageCanvas {
-        background-color : #fff;
+        background-color: var(--imageCanvas-background-color);
+
         /*report쪽에 들어갔을때 꽉참*/
-        width: 100%;
-        height: 100%;
+        width : 100%;
+        height : 100%;
       }
 
     </style>
@@ -220,8 +223,8 @@ Custom property | Description | Default
         {
             let oCanvas = _this.getCanvas();
 
-            oCanvas.width = 380;
-            oCanvas.height = 355;
+            oCanvas.width = _this.offsetWidth;
+            oCanvas.height = _this.offsetHeight;
 
             oInfo.setClientSize(oCanvas.width, oCanvas.height);
         }
@@ -262,6 +265,9 @@ Custom property | Description | Default
             }
             else {
                 oInfo.setInit("Thyroid US+CNB (1 nodule)", oItems);
+                // oInfo.setInit("mammo", oItems);
+                // oInfo.setInit("breast", oItems);
+                // oInfo.setInit("trus_res", oItems);
             }
 
             oInfo.draw();
