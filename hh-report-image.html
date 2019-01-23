@@ -12,7 +12,8 @@ Report Image 컴포넌트
 Create by mjkim on 2018. 12. 24. PM 12:50
 
 ### Styling
-default menu width : 100px;
+default width : 100%;
+default height : 100%;
 
 Custom property | Description | Default
 ----------------|-------------|----------
@@ -46,7 +47,7 @@ Custom property | Description | Default
       /*vaadin-context-menu-overlay*/
       :host [part="overlay"] {
         width: 100px;
-        height: 273px;
+        /*height: 273px;*/
       }
 
       /*vaadin-item*/
@@ -81,7 +82,7 @@ Custom property | Description | Default
     </style>
 
     <!--contextMenu-->
-    <vaadin-context-menu id="contextMenuContainer" class="contextMenu-container" selector="canvas">
+    <vaadin-context-menu id="contextMenuContainer" class="contextMenu-container" selector$="idCanvas">
       <template is="dom-repeat">
         <vaadin-list-box>
           <vaadin-item id="itemPen" class="contextMenu-item" on-click="onPen">Pen</vaadin-item>
