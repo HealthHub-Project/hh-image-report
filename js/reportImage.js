@@ -344,7 +344,7 @@ class ReportImage
 
         if (h.isEmpty(joItems) || h.isEmpty(joItems.items))
         {
-            this._drawItems = JSON.parse('{"backgroundImage": "", "items": []');
+            this._drawItems = JSON.parse('{"backgroundImage": "", "items": []}');
         }
         else {
             this._drawItems = joItems;
@@ -477,7 +477,7 @@ class ReportImage
             this.drawEditing(oCtx, rcClient);
 
             h.drawError(oCtx, this._Errors);
-            this.drawDebug(oCtx);
+            // this.drawDebug(oCtx);
         }
     }
 
@@ -783,7 +783,7 @@ class ReportImage
     }
 
     get scale() {
-        return this._scale;
+        return this._scale.toFixed(2);
     }
 
     set scale(nScale) {
