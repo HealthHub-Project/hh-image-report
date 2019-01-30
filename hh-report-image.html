@@ -150,14 +150,14 @@ Custom property | Description | Default
         }
 
         /**
-         * function getStructImage
-         * caseID별 studyDescription, Image 구조체 조회
+         * function setStructImage
+         * caseID별 studyDescription, Image 구조체 조회 후 viewing
          *
          * Create by 김민정 on 2018-12-28 오후 5:50
          * @param {Object} structImage
          * @return {}
-        **/
-        getStructImage(structImage) {
+         **/
+        setStructImage(structImage) {
             _this.clearStructImage();
 
             if(structImage.studyDescription !== undefined) {
@@ -172,14 +172,14 @@ Custom property | Description | Default
         }
 
         /**
-         * function setStructImage
-         * Approve시 Image 구조체 저장
+         * function getStructImage
+         * Approve시 Image 구조체 받은 후 전달 event
          *
          * Create by 김민정 on 2019-01-04 오후 12:05
-         * @param {} 
+         * @param {}
          * @return {}
-        **/
-        setStructImage() {
+         **/
+        getStructImage() {
             let param = {};
             param.detail = oInfo.getValue();
 
@@ -187,14 +187,14 @@ Custom property | Description | Default
         }
 
         /**
-         * function setReportImage
-         * report에 전달할 image
+         * function getReportImage
+         * report print에 전달할 image 받은은후 전달 event
          *
          * Create by 김민정 on 2019-01-04 오후 2:55
          * @param {}
          * @return {}
-        **/
-        setReportImage() {
+         **/
+        getReportImage() {
             let param = {};
             param.detail = oInfo.getImage();
 
