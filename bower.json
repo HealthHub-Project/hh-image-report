@@ -5,7 +5,8 @@
     "polymer": "Polymer/polymer#^2.0.0",
     "vaadin-context-menu": "vaadin/vaadin-context-menu#^4.2.1",
     "vaadin-list-box": "vaadin/vaadin-list-box#^1.1.0",
-    "vaadin-item": "vaadin/vaadin-item#^2.1.0"
+    "vaadin-item": "vaadin/vaadin-item#^2.1.0",
+    "vaadin-combo-box": "vaadin/vaadin-combo-box#^4.2.3"
   },
   "devDependencies": {
     "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",

@@ -2,6 +2,7 @@
 <link rel="import" href="../vaadin-context-menu/vaadin-context-menu.html">
 <link rel="import" href="../vaadin-list-box/vaadin-list-box.html">
 <link rel="import" href="../vaadin-item/vaadin-item.html">
+<link rel="import" href="../vaadin-combo-box/vaadin-combo-box.html">
 
 <script src="js/backgroundImage.js"></script>
 <script src="js/reportImage.js"></script>
@@ -71,6 +72,17 @@ Custom property | Description | Default
         margin-bottom: 5px;
       }
 
+      /*vaadin-combo-box*/
+      .comboboxMenu-container {
+        position: absolute;
+        width: 120px;
+        margin: 0 3px 0 3px;
+        /*height: 25px;*/
+        /*font-size: 13px;*/
+        /*left: 5px;*/
+      }
+
+      /*canvas*/
       .imageCanvas {
         background-color: var(--imageCanvas-background-color);
 
@@ -81,8 +93,10 @@ Custom property | Description | Default
 
     </style>
 
+    <vaadin-combo-box id="backgroundImageTemplate" class="comboboxMenu-container" allow-custom-value theme="small"></vaadin-combo-box>
+
     <!--contextMenu-->
-    <vaadin-context-menu id="contextMenuContainer" class="contextMenu-container" selector$="idCanvas">
+    <vaadin-context-menu class="contextMenu-container" selector$="idCanvas">
       <template is="dom-repeat">
         <vaadin-list-box>
           <vaadin-item id="itemPen" class="contextMenu-item" on-click="onPen">Pen</vaadin-item>
@@ -132,6 +146,16 @@ Custom property | Description | Default
             prop1: {
               type: String,
               value: 'hh-report-image'
+            },
+            comboItems: {
+              type: Array,
+              value() {
+                  return [
+                      "Default",
+                      "Mammo",
+                      "Thyroid"
+                  ]
+              }
             }
           };
         }
@@ -145,7 +169,33 @@ Custom property | Description | Default
             super.ready();
 
             window.addEventListener('WebComponentsReady', e => {
+                // combobox menu 생성
+                let backgroundImage = _this.$.backgroundImageTemplate;
+                let clearBtn = _this.$.backgroundImageTemplate.$.clearButton;
+                backgroundImage.items = _this.comboItems;
+                backgroundImage.value = _this.comboItems[0];
+
+                // style 지정
+                backgroundImage.inputElement.style.fontSize = "13px";
+
+                // reportImage viewing
                 _this.onLoadBody();
+
+                backgroundImage.addEventListener('value-changed', () => {
+                    // 빈값이 들어왔을때 Default로 변경
+                    if(backgroundImage.value === "") {
+                        backgroundImage.value = _this.comboItems[0];
+                    }
+
+                    g_studyDesc = backgroundImage.value;
+
+                    _this.onLoadBody();
+                });
+
+                // clearButton 클릭시
+                clearBtn.addEventListener('click', () => {
+                    backgroundImage.value = _this.comboItems[0];
+                });
             });
         }
 
@@ -160,9 +210,9 @@ Custom property | Description | Default
         setStructImage(structImage) {
             _this.clearStructImage();
 
-            if(structImage.studyDescription !== undefined) {
-                g_studyDesc = structImage.studyDescription;
-            }
+            // if(structImage.studyDescription !== undefined) {
+            //     g_studyDesc = structImage.studyDescription;
+            // }
 
             if(structImage.reportImage !== undefined) {
                 g_reportImage = structImage.reportImage;
@@ -269,7 +319,8 @@ Custom property | Description | Default
                 oInfo.setInit(g_studyDesc, oItems);
             }
             else {
-                oInfo.setInit("Thyroid US+CNB (1 nodule)", oItems);
+                oInfo.setInit("", oItems);
+                // oInfo.setInit("Thyroid US+CNB (1 nodule)", oItems);
                 // oInfo.setInit("mammo", oItems);
                 // oInfo.setInit("breast", oItems);
                 // oInfo.setInit("trus_res", oItems);
