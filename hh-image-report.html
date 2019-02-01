@@ -184,17 +184,16 @@ Custom property | Description | Default
                 backgroundImage.addEventListener('value-changed', () => {
                     // 빈값이 들어왔을때 Default로 변경
                     if(backgroundImage.value === "") {
-                        backgroundImage.value = _this.comboItems[0];
+                        _this.clearStructImage();
                     }
 
                     g_studyDesc = backgroundImage.value;
-
                     _this.onLoadBody();
                 });
 
                 // clearButton 클릭시
                 clearBtn.addEventListener('click', () => {
-                    backgroundImage.value = _this.comboItems[0];
+                    _this.clearStructImage();
                 });
             });
         }
@@ -209,10 +208,6 @@ Custom property | Description | Default
          **/
         setStructImage(structImage) {
             _this.clearStructImage();
-
-            // if(structImage.studyDescription !== undefined) {
-            //     g_studyDesc = structImage.studyDescription;
-            // }
 
             if(structImage.imageReport !== undefined) {
                 g_imageReport = structImage.imageReport;
@@ -260,6 +255,7 @@ Custom property | Description | Default
          * @return {}
         **/
         clearStructImage() {
+            _this.$.backgroundImageTemplate.value = _this.comboItems[0];
             g_studyDesc = null;
             g_imageReport = null;
         }
