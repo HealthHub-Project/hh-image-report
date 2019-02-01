@@ -182,9 +182,14 @@ Custom property | Description | Default
                 _this.onLoadBody();
 
                 backgroundImage.addEventListener('value-changed', () => {
+                    // Default로 들어왔을때 Clear
+                    if(backgroundImage.value === "Default") {
+                        _this.clearStructImage();
+                    }
+
                     // 빈값이 들어왔을때 Default로 변경
                     if(backgroundImage.value === "") {
-                        _this.clearStructImage();
+                        backgroundImage.value = _this.comboItems[0];
                     }
 
                     g_studyDesc = backgroundImage.value;
@@ -210,6 +215,14 @@ Custom property | Description | Default
             _this.clearStructImage();
 
             if(structImage.imageReport !== undefined) {
+                // combobox 초기값 변경
+                if(structImage.imageReport.backgroundImage === "thyroid") {
+                    _this.$.backgroundImageTemplate.value = _this.comboItems[2];
+                }
+                else if(structImage.imageReport.backgroundImage === "mammo") {
+                    _this.$.backgroundImageTemplate.value = _this.comboItems[1];
+                }
+
                 g_imageReport = structImage.imageReport;
             }
 
@@ -258,6 +271,18 @@ Custom property | Description | Default
             _this.$.backgroundImageTemplate.value = _this.comboItems[0];
             g_studyDesc = null;
             g_imageReport = null;
+        }
+
+        /**
+         * function clearCanvas
+         * canvas clear
+         *
+         * Create by 김민정 on 2019-02-01 오후 3:37
+         * @param {} 
+         * @return {}
+        **/
+        clearCanvas() {
+            return oInfo._g.clearRect(0, 0, this.getCanvas().width, this.getCanvas().height);
         }
 
         onLoadBody()
