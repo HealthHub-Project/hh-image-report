@@ -23,7 +23,7 @@ const textAlign = {
     center: 'center'
 };
 
-class ReportImage
+class ImageReport
 {
     constructor(oCanvas) {
 
