@@ -172,13 +172,13 @@ Custom property | Description | Default
                 // combobox menu 생성
                 let backgroundImage = _this.$.backgroundImageTemplate;
                 let clearBtn = _this.$.backgroundImageTemplate.$.clearButton;
+                // combobox item 추가
                 backgroundImage.items = _this.comboItems;
-                backgroundImage.value = _this.comboItems[0];
-
                 // combobox style 지정
                 backgroundImage.inputElement.style.fontSize = "13px";
 
                 // imageReport viewing
+                _this.clearStructImage();
                 _this.onLoadBody();
 
                 backgroundImage.addEventListener('value-changed', () => {
