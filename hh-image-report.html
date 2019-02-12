@@ -175,28 +175,27 @@ Custom property | Description | Default
                 backgroundImage.items = _this.comboItems;
                 backgroundImage.value = _this.comboItems[0];
 
-                // style 지정
+                // combobox style 지정
                 backgroundImage.inputElement.style.fontSize = "13px";
 
                 // imageReport viewing
                 _this.onLoadBody();
 
                 backgroundImage.addEventListener('value-changed', () => {
-                    // Default로 들어왔을때 Clear
-                    if(backgroundImage.value === "Default") {
+                    // Default나 빈값이 들어왔을때 Clear
+                    if(backgroundImage.value === "Default" || backgroundImage.value === "") {
                         _this.clearStructImage();
                     }
-
-                    // 빈값이 들어왔을때 Default로 변경
-                    if(backgroundImage.value === "") {
-                        backgroundImage.value = _this.comboItems[0];
+                    else {
+                        g_studyDesc = backgroundImage.value.toLowerCase();
+                        g_imageReport.backgroundImage = backgroundImage.value.toLowerCase();
+                        g_imageReport.items = [];
                     }
 
-                    g_studyDesc = backgroundImage.value;
                     _this.onLoadBody();
                 });
 
-                // clearButton 클릭시
+                // clearButton 클릭시 Clear
                 clearBtn.addEventListener('click', () => {
                     _this.clearStructImage();
                 });
@@ -215,7 +214,7 @@ Custom property | Description | Default
             _this.clearStructImage();
 
             if(structImage.imageReport !== undefined) {
-                // combobox 초기값 변경
+                // combobox value 변경
                 if(structImage.imageReport.backgroundImage === "thyroid") {
                     _this.$.backgroundImageTemplate.value = _this.comboItems[2];
                 }
@@ -224,6 +223,9 @@ Custom property | Description | Default
                 }
 
                 g_imageReport = structImage.imageReport;
+            }
+            else {
+                g_imageReport = JSON.parse('{"backgroundImage": "", "items": []}');
             }
 
             _this.onLoadBody();
@@ -264,13 +266,13 @@ Custom property | Description | Default
          * Image 구조체 초기화
          *
          * Create by 김민정 on 2019-01-02 오후 12:47
-         * @param {} 
+         * @param {}
          * @return {}
         **/
         clearStructImage() {
             _this.$.backgroundImageTemplate.value = _this.comboItems[0];
-            g_studyDesc = null;
-            g_imageReport = null;
+            g_studyDesc = "";
+            g_imageReport = JSON.parse('{"backgroundImage": "", "items": []}');
         }
 
         /**
@@ -278,7 +280,7 @@ Custom property | Description | Default
          * canvas clear
          *
          * Create by 김민정 on 2019-02-01 오후 3:37
-         * @param {} 
+         * @param {}
          * @return {}
         **/
         clearCanvas() {
@@ -328,7 +330,7 @@ Custom property | Description | Default
             //7045178
             //oItems = JSON.parse('{"backgroundImage":"","items":[{"style":"ellipse","points":[{"x":"108","y":"144"},{"x":"116","y":"154"}],"items":[]},{"style":"ellipse","points":[{"x":"116","y":"201"},{"x":"123","y":"212"}],"items":[]},{"style":"ellipse","points":[{"x":"117","y":"156"},{"x":"119","y":"158"}],"items":[]},{"style":"ellipse","points":[{"x":"202","y":"177"},{"x":"241","y":"221"}],"items":[{"style":"text","points":[{"x":"7","y":"8"},{"x":"0","y":"11"}],"value":"L1"}]},{"style":"ellipse","points":[{"x":"90","y":"181"},{"x":"108","y":"204"}],"items":[]},{"style":"text","points":[{"x":"94","y":"166"},{"x":"0","y":"11"}],"value":"R1"}]}');
             //7089160 (구조체)
-            if(g_imageReport !== undefined && g_imageReport !== null) {
+            if(g_imageReport !== undefined) {
                 oItems = g_imageReport;
             }
             else {
@@ -336,7 +338,7 @@ Custom property | Description | Default
                 oItems = JSON.parse('{"backgroundImage": "", "items": []}');
             }
 
-            if(g_studyDesc !== undefined && g_studyDesc !== null) {
+            if(g_studyDesc !== undefined) {
                 oInfo.setInit(g_studyDesc, oItems);
             }
             else {
