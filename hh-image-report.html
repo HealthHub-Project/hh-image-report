@@ -184,12 +184,11 @@ Custom property | Description | Default
                 backgroundImage.addEventListener('value-changed', () => {
                     // Default나 빈값이 들어왔을때 Clear
                     if(backgroundImage.value === "Default" || backgroundImage.value === "") {
-                        _this.clearStructImage();
+                      _this.initDefaultImage();
                     }
                     else {
                         g_studyDesc = backgroundImage.value.toLowerCase();
                         g_imageReport.backgroundImage = backgroundImage.value.toLowerCase();
-                        g_imageReport.items = [];
                     }
 
                     _this.onLoadBody();
@@ -263,7 +262,7 @@ Custom property | Description | Default
 
         /**
          * function clearStructImage
-         * Image 구조체 초기화
+         * clear 이벤트 발생 시 image 구조체 초기화
          *
          * Create by 김민정 on 2019-01-02 오후 12:47
          * @param {}
@@ -273,6 +272,18 @@ Custom property | Description | Default
             _this.$.backgroundImageTemplate.value = _this.comboItems[0];
             g_studyDesc = "";
             g_imageReport = JSON.parse('{"backgroundImage": "", "items": []}');
+        }
+
+        /**
+         * function initDefaultImage
+         * backgroundImage가 default일때 버튼 및 image 구조체 상태
+         *
+         * Create by mjkim on 2019-07-16 오후 4:32
+        **/
+        initDefaultImage() {
+          _this.$.backgroundImageTemplate.value = _this.comboItems[0];
+          g_studyDesc = "";
+          g_imageReport.backgroundImage = "";
         }
 
         /**
@@ -343,10 +354,6 @@ Custom property | Description | Default
             }
             else {
                 oInfo.setInit("", oItems);
-                // oInfo.setInit("Thyroid US+CNB (1 nodule)", oItems);
-                // oInfo.setInit("mammo", oItems);
-                // oInfo.setInit("breast", oItems);
-                // oInfo.setInit("trus_res", oItems);
             }
 
             oInfo.draw();

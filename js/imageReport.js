@@ -324,7 +324,8 @@ class ImageReport
         }
         else if (sStudyDesc.indexOf("thyroid") > -1)
         {
-            this.setBackgroundImage(new Size(326, 340), imageFile.trusRes);
+            this.setBackgroundImage(new Size(327, 425), imageFile.trusRes);
+            // this.setBackgroundImage(new Size(326, 340), imageFile.trusRes);
             sStudyDesc = "thyroid";
         }
         else if (sStudyDesc.indexOf("breast") > -1)
