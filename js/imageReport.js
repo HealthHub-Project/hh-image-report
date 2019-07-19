@@ -529,7 +529,7 @@ class ImageReport
                 rcItem.x = Math.min(ptDown.x, ptMove.x);
                 rcItem.y = Math.min(ptDown.y, ptMove.y);
                 rcItem.width = Math.max(ptDown.x, ptMove.x) - rcItem.x;
-                rcItem.height = Math.max(ptMove.y, ptMove.y) - rcItem.y;
+                rcItem.height = Math.max(ptDown.y, ptMove.y) - rcItem.y;
 
                 h.drawEllipse(oCtx, rcItem, this._color, true);
             }
