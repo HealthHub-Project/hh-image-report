@@ -1,7 +1,7 @@
 {
   "name": "hh-image-report",
   "main": "hh-image-report.html",
-  "version":"1.0.1",
+  "version":"1.0.2",
   "dependencies": {
     "polymer": "Polymer/polymer#^2.0.0",
     "vaadin-context-menu": "vaadin/vaadin-context-menu#^4.2.1",

@@ -37,8 +37,6 @@ Custom property | Description | Default
         --contextMenuItem-font-color: #aaaaaa;
         --contextMenuItem-disabled-font-color: #4C5667;
         --contextMenuItem-hover-color: #0087cb;
-        height: 100%;
-        width: 100%;
       }
 
       /*vaadin-context-menu*/
@@ -78,16 +76,19 @@ Custom property | Description | Default
       .comboboxMenu-container {
         position: absolute;
         width: 120px;
-        margin: 10px 0 0 15px;
+        margin: 0 3px 0 3px;
+        /*height: 25px;*/
+        /*font-size: 13px;*/
+        /*left: 5px;*/
       }
 
       /*canvas*/
       .imageCanvas {
         background-color: var(--imageCanvas-background-color);
+
         /*report쪽에 들어갔을때 꽉참*/
-        width : calc(100% - 20px);
-        height: 335px;
-        margin: 10px;
+        width : 100%;
+        height : 100%;
       }
 
     </style>
@@ -115,347 +116,345 @@ Custom property | Description | Default
 
 
   <script>
-      /**
-       * `hh-image-report`
-       *
-       * @Version 1.0.1
-       * @Date    20190918
-       *
-       * @customElement
-       * @polymer
-       * @demo demo/index.html
-       */
+    /**
+     * `hh-image-report`
+     *
+     * @Version 1.0.2
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
 
-      (function () {
+    (function () {
 
-          let _this;
+      let _this;
 
-          let oInfo;
-          let oItems;
-          // studyDescription
-          let g_studyDesc;
-          // image struct
-          let g_imageReport;
+      let oInfo;
+      let oItems;
+      // studyDescription
+      let g_studyDesc;
+      // image struct
+      let g_imageReport;
 
-          class HhImageReport extends Polymer.Element {
-              static get is() {
-                  return 'hh-image-report';
+      class HhImageReport extends Polymer.Element {
+        static get is() {
+            return 'hh-image-report';
+        }
+
+        static get properties() {
+          return {
+            prop1: {
+              type: String,
+              value: 'hh-image-report'
+            },
+            comboItems: {
+              type: Array,
+              value() {
+                  return [
+                      "Default",
+                      "Mammo",
+                      "Thyroid"
+                  ]
               }
+            }
+          };
+        }
 
-              static get properties() {
-                  return {
-                      prop1: {
-                          type: String,
-                          value: 'hh-image-report'
-                      },
-                      comboItems: {
-                          type: Array,
-                          value() {
-                              return [
-                                  "Default",
-                                  "Mammo",
-                                  "Thyroid"
-                              ]
-                          }
-                      }
-                  };
-              }
+        constructor() {
+            super();
+            _this = this;
+        }
 
-              constructor() {
-                  super();
-                  _this = this;
-              }
+        ready() {
+            super.ready();
 
-              ready() {
-                  super.ready();
+            window.addEventListener('WebComponentsReady', e => {
+                // combobox menu 생성
+                let backgroundImage = _this.$.backgroundImageTemplate;
+                let clearBtn = _this.$.backgroundImageTemplate.$.clearButton;
+                // combobox item 추가
+                backgroundImage.items = _this.comboItems;
+                // combobox style 지정
+                backgroundImage.inputElement.style.fontSize = "13px";
 
-                  window.addEventListener('WebComponentsReady', e => {
-                      // combobox menu 생성
-                      let backgroundImage = _this.$.backgroundImageTemplate;
-                      let clearBtn = _this.$.backgroundImageTemplate.$.clearButton;
-                      // combobox item 추가
-                      backgroundImage.items = _this.comboItems;
-                      // combobox style 지정
-                      backgroundImage.inputElement.style.fontSize = "13px";
+                // imageReport viewing
+                _this.clearStructImage();
+                _this.onLoadBody();
 
-                      // imageReport viewing
-                      _this.clearStructImage();
-                      _this.onLoadBody();
+                backgroundImage.addEventListener('value-changed', () => {
+                    // Default나 빈값이 들어왔을때 Clear
+                    if(backgroundImage.value === "Default" || backgroundImage.value === "") {
+                      _this.initDefaultImage();
+                    }
+                    else {
+                        g_studyDesc = backgroundImage.value.toLowerCase();
+                        g_imageReport.backgroundImage = backgroundImage.value.toLowerCase();
+                    }
 
-                      backgroundImage.addEventListener('value-changed', () => {
-                          // Default나 빈값이 들어왔을때 Clear
-                          if(backgroundImage.value === "Default" || backgroundImage.value === "") {
-                              _this.initDefaultImage();
-                          }
-                          else {
-                              g_studyDesc = backgroundImage.value.toLowerCase();
-                              g_imageReport.backgroundImage = backgroundImage.value.toLowerCase();
-                          }
+                    _this.onLoadBody();
+                });
 
-                          _this.onLoadBody();
-                      });
+                // clearButton 클릭시 Clear
+                clearBtn.addEventListener('click', () => {
+                    _this.clearStructImage();
+                });
+            });
+        }
 
-                      // clearButton 클릭시 Clear
-                      clearBtn.addEventListener('click', () => {
-                          _this.clearStructImage();
-                      });
-                  });
-              }
+        /**
+         * function setStructImage
+         * caseID별 studyDescription, Image 구조체 조회 후 viewing
+         *
+         * Create by 김민정 on 2018-12-28 오후 5:50
+         * @param {Object} structImage
+         * @return {}
+         **/
+        setStructImage(structImage) {
+            _this.clearStructImage();
 
-              /**
-               * function setStructImage
-               * caseID별 studyDescription, Image 구조체 조회 후 viewing
-               *
-               * Create by 김민정 on 2018-12-28 오후 5:50
-               * @param {Object} structImage
-               * @return {}
-               **/
-              setStructImage(structImage) {
-                  _this.clearStructImage();
+            if(structImage.imageReport !== undefined) {
+                // combobox value 변경
+                if(structImage.imageReport.backgroundImage === "thyroid") {
+                    _this.$.backgroundImageTemplate.value = _this.comboItems[2];
+                }
+                else if(structImage.imageReport.backgroundImage === "mammo") {
+                    _this.$.backgroundImageTemplate.value = _this.comboItems[1];
+                }
 
-                  if(structImage.imageReport !== undefined) {
-                      // combobox value 변경
-                      if(structImage.imageReport.backgroundImage === "thyroid") {
-                          _this.$.backgroundImageTemplate.value = _this.comboItems[2];
-                      }
-                      else if(structImage.imageReport.backgroundImage === "mammo") {
-                          _this.$.backgroundImageTemplate.value = _this.comboItems[1];
-                      }
+                g_imageReport = structImage.imageReport;
+            }
+            else {
+                g_imageReport = JSON.parse('{"backgroundImage": "", "items": []}');
+            }
 
-                      g_imageReport = structImage.imageReport;
-                  }
-                  else {
-                      g_imageReport = JSON.parse('{"backgroundImage": "", "items": []}');
-                  }
+            _this.onLoadBody();
+        }
 
-                  _this.onLoadBody();
-              }
+        /**
+         * function getStructImage
+         * Approve시 Image 구조체 받은 후 전달 event
+         *
+         * Create by 김민정 on 2019-01-04 오후 12:05
+         * @param {}
+         * @return {}
+         **/
+        getStructImage() {
+            let param = {};
+            param.detail = oInfo.getValue();
 
-              /**
-               * function getStructImage
-               * Approve시 Image 구조체 받은 후 전달 event
-               *
-               * Create by 김민정 on 2019-01-04 오후 12:05
-               * @param {}
-               * @return {}
-               **/
-              getStructImage() {
-                  let param = {};
-                  param.detail = oInfo.getValue();
+            _this.dispatchEvent(new CustomEvent('setStructImageEvent', param));
+        }
 
-                  _this.dispatchEvent(new CustomEvent('setStructImageEvent', param));
-              }
+        /**
+         * function getImageReport
+         * report print에 전달할 image 받은은후 전달 event
+         *
+         * Create by 김민정 on 2019-01-04 오후 2:55
+         * @param {}
+         * @return {}
+         **/
+        getImageReport() {
+            let param = {};
+            param.detail = oInfo.getImage();
 
-              /**
-               * function getImageReport
-               * report print에 전달할 image 받은은후 전달 event
-               *
-               * Create by 김민정 on 2019-01-04 오후 2:55
-               * @param {}
-               * @return {}
-               **/
-              getImageReport() {
-                  let param = {};
-                  param.detail = oInfo.getImage();
-                  _this.dispatchEvent(new CustomEvent('setImageReportEvent', param));
-              }
+            _this.dispatchEvent(new CustomEvent('setImageReportEvent', param));
+        }
 
-              /**
-               * function clearStructImage
-               * clear 이벤트 발생 시 image 구조체 초기화
-               *
-               * Create by 김민정 on 2019-01-02 오후 12:47
-               * @param {}
-               * @return {}
-               **/
-              clearStructImage() {
-                  _this.$.backgroundImageTemplate.value = _this.comboItems[0];
-                  g_studyDesc = "";
-                  g_imageReport = JSON.parse('{"backgroundImage": "", "items": []}');
-              }
+        /**
+         * function clearStructImage
+         * clear 이벤트 발생 시 image 구조체 초기화
+         *
+         * Create by 김민정 on 2019-01-02 오후 12:47
+         * @param {}
+         * @return {}
+        **/
+        clearStructImage() {
+            _this.$.backgroundImageTemplate.value = _this.comboItems[0];
+            g_studyDesc = "";
+            g_imageReport = JSON.parse('{"backgroundImage": "", "items": []}');
+        }
 
-              /**
-               * function initDefaultImage
-               * backgroundImage가 default일때 버튼 및 image 구조체 상태
-               *
-               * Create by mjkim on 2019-07-16 오후 4:32
-               **/
-              initDefaultImage() {
-                  _this.$.backgroundImageTemplate.value = _this.comboItems[0];
-                  g_studyDesc = "";
-                  g_imageReport.backgroundImage = "";
-              }
+        /**
+         * function initDefaultImage
+         * backgroundImage가 default일때 버튼 및 image 구조체 상태
+         *
+         * Create by mjkim on 2019-07-16 오후 4:32
+        **/
+        initDefaultImage() {
+          _this.$.backgroundImageTemplate.value = _this.comboItems[0];
+          g_studyDesc = "";
+          g_imageReport.backgroundImage = "";
+        }
 
-              /**
-               * function clearCanvas
-               * canvas clear
-               *
-               * Create by 김민정 on 2019-02-01 오후 3:37
-               * @param {}
-               * @return {}
-               **/
-              clearCanvas() {
-                  return oInfo._g.clearRect(0, 0, this.getCanvas().width, this.getCanvas().height);
-              }
+        /**
+         * function clearCanvas
+         * canvas clear
+         *
+         * Create by 김민정 on 2019-02-01 오후 3:37
+         * @param {}
+         * @return {}
+        **/
+        clearCanvas() {
+            return oInfo._g.clearRect(0, 0, this.getCanvas().width, this.getCanvas().height);
+        }
 
-              onLoadBody()
-              {
-                  _this.initializeData();
-              }
+        onLoadBody()
+        {
+            _this.initializeData();
+        }
 
-              getCanvas() {
-                  return _this.$.idCanvas;
-              }
+        getCanvas() {
+            return _this.$.idCanvas;
+        }
 
-              onResizeWindow()
-              {
-                  let oCanvas = _this.getCanvas();
+        onResizeWindow()
+        {
+            let oCanvas = _this.getCanvas();
 
-                  oCanvas.width = _this.offsetWidth;
-                  oCanvas.height = _this.offsetHeight;
-                  // oCanvas.width = "377px";
-                  // oCanvas.height = "355px";
+            oCanvas.width = _this.offsetWidth;
+            oCanvas.height = _this.offsetHeight;
 
-                  oInfo.setClientSize(oCanvas.width, oCanvas.height);
-              }
+            oInfo.setClientSize(oCanvas.width, oCanvas.height);
+        }
 
-              onMouseDown(e)
-              {
-                  oInfo.onMouseDown(e);
-              }
+        onMouseDown(e)
+        {
+            oInfo.onMouseDown(e);
+        }
 
-              onMouseUp(e)
-              {
-                  oInfo.onMouseUp(e);
-              }
+        onMouseUp(e)
+        {
+            oInfo.onMouseUp(e);
+        }
 
-              onMouseMove(e)
-              {
-                  oInfo.onMouseMove(e);
-              }
+        onMouseMove(e)
+        {
+            oInfo.onMouseMove(e);
+        }
 
-              initializeData()
-              {
-                  let oCanvas = _this.getCanvas();
+        initializeData()
+        {
+            let oCanvas = _this.getCanvas();
 
-                  oInfo = new ImageReport(oCanvas);
+            oInfo = new ImageReport(oCanvas);
 
-                  //7045178
-                  //oItems = JSON.parse('{"backgroundImage":"","items":[{"style":"ellipse","points":[{"x":"108","y":"144"},{"x":"116","y":"154"}],"items":[]},{"style":"ellipse","points":[{"x":"116","y":"201"},{"x":"123","y":"212"}],"items":[]},{"style":"ellipse","points":[{"x":"117","y":"156"},{"x":"119","y":"158"}],"items":[]},{"style":"ellipse","points":[{"x":"202","y":"177"},{"x":"241","y":"221"}],"items":[{"style":"text","points":[{"x":"7","y":"8"},{"x":"0","y":"11"}],"value":"L1"}]},{"style":"ellipse","points":[{"x":"90","y":"181"},{"x":"108","y":"204"}],"items":[]},{"style":"text","points":[{"x":"94","y":"166"},{"x":"0","y":"11"}],"value":"R1"}]}');
-                  //7089160 (구조체)
-                  if(g_imageReport !== undefined) {
-                      oItems = g_imageReport;
-                      // oItems = JSON.parse('{"backgroundImage":"","items":[{"style":"ellipse","points":[{"x":"193","y":"184"},{"x":"214","y":"204"}],"items":[]},{"style":"text","points":[{"x":"201","y":"164"},{"x":"0","y":"11"}],"value":"L1"}]}');
-                  }
-                  else {
-                      // oItems = JSON.parse('{"backgroundImage":"","items":[{"style":"pen","points":[{"x":"111","y":"203"},{"x":"111","y":"202"},{"x":"110","y":"202"},{"x":"109","y":"202"},{"x":"107","y":"202"},{"x":"104","y":"204"},{"x":"102","y":"205"},{"x":"100","y":"205"},{"x":"98","y":"206"},{"x":"97","y":"207"},{"x":"96","y":"208"},{"x":"93","y":"209"},{"x":"92","y":"210"},{"x":"91","y":"211"},{"x":"91","y":"212"},{"x":"91","y":"213"},{"x":"92","y":"213"},{"x":"93","y":"213"},{"x":"95","y":"213"},{"x":"98","y":"214"},{"x":"99","y":"214"},{"x":"102","y":"215"},{"x":"105","y":"217"},{"x":"106","y":"218"},{"x":"107","y":"219"},{"x":"108","y":"219"},{"x":"108","y":"221"},{"x":"109","y":"222"},{"x":"109","y":"224"},{"x":"110","y":"225"},{"x":"110","y":"226"},{"x":"110","y":"227"},{"x":"110","y":"228"},{"x":"112","y":"228"},{"x":"113","y":"228"},{"x":"113","y":"228"},{"x":"114","y":"229"},{"x":"115","y":"229"},{"x":"116","y":"229"},{"x":"116","y":"231"},{"x":"116","y":"232"},{"x":"116","y":"233"},{"x":"116","y":"234"},{"x":"116","y":"235"},{"x":"116","y":"236"},{"x":"116","y":"237"},{"x":"116","y":"238"},{"x":"116","y":"239"},{"x":"117","y":"240"},{"x":"119","y":"240"},{"x":"119","y":"241"},{"x":"120","y":"241"},{"x":"120","y":"242"},{"x":"122","y":"243"},{"x":"123","y":"243"},{"x":"124","y":"244"},{"x":"125","y":"245"},{"x":"126","y":"245"},{"x":"127","y":"246"},{"x":"127","y":"246"},{"x":"128","y":"246"},{"x":"129","y":"246"},{"x":"130","y":"246"},{"x":"131","y":"246"},{"x":"133","y":"245"},{"x":"134","y":"245"},{"x":"135","y":"243"},{"x":"136","y":"242"},{"x":"138","y":"240"},{"x":"139","y":"240"},{"x":"140","y":"238"},{"x":"140","y":"236"},{"x":"141","y":"235"},{"x":"141","y":"234"},{"x":"141","y":"233"},{"x":"142","y":"233"},{"x":"142","y":"232"},{"x":"143","y":"230"},{"x":"144","y":"228"},{"x":"145","y":"228"},{"x":"145","y":"226"},{"x":"146","y":"225"},{"x":"147","y":"224"},{"x":"147","y":"223"},{"x":"147","y":"222"},{"x":"147","y":"221"},{"x":"148","y":"221"},{"x":"148","y":"220"},{"x":"148","y":"219"},{"x":"148","y":"219"},{"x":"148","y":"218"},{"x":"147","y":"217"},{"x":"147","y":"216"},{"x":"147","y":"215"},{"x":"146","y":"213"},{"x":"145","y":"211"},{"x":"145","y":"210"},{"x":"145","y":"207"},{"x":"145","y":"205"},{"x":"145","y":"204"},{"x":"145","y":"203"},{"x":"145","y":"202"},{"x":"144","y":"202"},{"x":"144","y":"201"},{"x":"142","y":"201"},{"x":"142","y":"201"},{"x":"140","y":"201"},{"x":"138","y":"201"},{"x":"136","y":"202"},{"x":"135","y":"202"},{"x":"134","y":"202"},{"x":"133","y":"202"},{"x":"131","y":"202"},{"x":"129","y":"202"},{"x":"128","y":"203"},{"x":"127","y":"204"},{"x":"127","y":"205"},{"x":"126","y":"205"},{"x":"125","y":"205"},{"x":"125","y":"203"},{"x":"125","y":"201"},{"x":"125","y":"200"},{"x":"125","y":"199"},{"x":"125","y":"198"},{"x":"125","y":"197"},{"x":"124","y":"197"},{"x":"122","y":"197"},{"x":"121","y":"198"},{"x":"120","y":"199"},{"x":"119","y":"199"},{"x":"118","y":"199"},{"x":"117","y":"199"},{"x":"116","y":"199"},{"x":"115","y":"199"},{"x":"114","y":"199"},{"x":"114","y":"198"},{"x":"113","y":"198"}]},{"style":"text","points":[{"x":"112","y":"204"},{"x":"0","y":"11"}],"value":"R`1"},{"style":"line","points":[{"x":"50","y":"50"},{"x":"90","y":"150"}]},{"style":"ellipse","points":[{"x":"150","y":"250"},{"x":"90","y":"150"}]}]}');
-                      oItems = JSON.parse('{"backgroundImage": "", "items": []}');
-                  }
+            //7045178
+            //oItems = JSON.parse('{"backgroundImage":"","items":[{"style":"ellipse","points":[{"x":"108","y":"144"},{"x":"116","y":"154"}],"items":[]},{"style":"ellipse","points":[{"x":"116","y":"201"},{"x":"123","y":"212"}],"items":[]},{"style":"ellipse","points":[{"x":"117","y":"156"},{"x":"119","y":"158"}],"items":[]},{"style":"ellipse","points":[{"x":"202","y":"177"},{"x":"241","y":"221"}],"items":[{"style":"text","points":[{"x":"7","y":"8"},{"x":"0","y":"11"}],"value":"L1"}]},{"style":"ellipse","points":[{"x":"90","y":"181"},{"x":"108","y":"204"}],"items":[]},{"style":"text","points":[{"x":"94","y":"166"},{"x":"0","y":"11"}],"value":"R1"}]}');
+            //7089160 (구조체)
+            if(g_imageReport !== undefined) {
+                oItems = g_imageReport;
+              // oItems = JSON.parse('{"backgroundImage":"","items":[{"style":"ellipse","points":[{"x":"193","y":"184"},{"x":"214","y":"204"}],"items":[]},{"style":"text","points":[{"x":"201","y":"164"},{"x":"0","y":"11"}],"value":"L1"}]}');
+            }
+            else {
+                // oItems = JSON.parse('{"backgroundImage":"","items":[{"style":"pen","points":[{"x":"111","y":"203"},{"x":"111","y":"202"},{"x":"110","y":"202"},{"x":"109","y":"202"},{"x":"107","y":"202"},{"x":"104","y":"204"},{"x":"102","y":"205"},{"x":"100","y":"205"},{"x":"98","y":"206"},{"x":"97","y":"207"},{"x":"96","y":"208"},{"x":"93","y":"209"},{"x":"92","y":"210"},{"x":"91","y":"211"},{"x":"91","y":"212"},{"x":"91","y":"213"},{"x":"92","y":"213"},{"x":"93","y":"213"},{"x":"95","y":"213"},{"x":"98","y":"214"},{"x":"99","y":"214"},{"x":"102","y":"215"},{"x":"105","y":"217"},{"x":"106","y":"218"},{"x":"107","y":"219"},{"x":"108","y":"219"},{"x":"108","y":"221"},{"x":"109","y":"222"},{"x":"109","y":"224"},{"x":"110","y":"225"},{"x":"110","y":"226"},{"x":"110","y":"227"},{"x":"110","y":"228"},{"x":"112","y":"228"},{"x":"113","y":"228"},{"x":"113","y":"228"},{"x":"114","y":"229"},{"x":"115","y":"229"},{"x":"116","y":"229"},{"x":"116","y":"231"},{"x":"116","y":"232"},{"x":"116","y":"233"},{"x":"116","y":"234"},{"x":"116","y":"235"},{"x":"116","y":"236"},{"x":"116","y":"237"},{"x":"116","y":"238"},{"x":"116","y":"239"},{"x":"117","y":"240"},{"x":"119","y":"240"},{"x":"119","y":"241"},{"x":"120","y":"241"},{"x":"120","y":"242"},{"x":"122","y":"243"},{"x":"123","y":"243"},{"x":"124","y":"244"},{"x":"125","y":"245"},{"x":"126","y":"245"},{"x":"127","y":"246"},{"x":"127","y":"246"},{"x":"128","y":"246"},{"x":"129","y":"246"},{"x":"130","y":"246"},{"x":"131","y":"246"},{"x":"133","y":"245"},{"x":"134","y":"245"},{"x":"135","y":"243"},{"x":"136","y":"242"},{"x":"138","y":"240"},{"x":"139","y":"240"},{"x":"140","y":"238"},{"x":"140","y":"236"},{"x":"141","y":"235"},{"x":"141","y":"234"},{"x":"141","y":"233"},{"x":"142","y":"233"},{"x":"142","y":"232"},{"x":"143","y":"230"},{"x":"144","y":"228"},{"x":"145","y":"228"},{"x":"145","y":"226"},{"x":"146","y":"225"},{"x":"147","y":"224"},{"x":"147","y":"223"},{"x":"147","y":"222"},{"x":"147","y":"221"},{"x":"148","y":"221"},{"x":"148","y":"220"},{"x":"148","y":"219"},{"x":"148","y":"219"},{"x":"148","y":"218"},{"x":"147","y":"217"},{"x":"147","y":"216"},{"x":"147","y":"215"},{"x":"146","y":"213"},{"x":"145","y":"211"},{"x":"145","y":"210"},{"x":"145","y":"207"},{"x":"145","y":"205"},{"x":"145","y":"204"},{"x":"145","y":"203"},{"x":"145","y":"202"},{"x":"144","y":"202"},{"x":"144","y":"201"},{"x":"142","y":"201"},{"x":"142","y":"201"},{"x":"140","y":"201"},{"x":"138","y":"201"},{"x":"136","y":"202"},{"x":"135","y":"202"},{"x":"134","y":"202"},{"x":"133","y":"202"},{"x":"131","y":"202"},{"x":"129","y":"202"},{"x":"128","y":"203"},{"x":"127","y":"204"},{"x":"127","y":"205"},{"x":"126","y":"205"},{"x":"125","y":"205"},{"x":"125","y":"203"},{"x":"125","y":"201"},{"x":"125","y":"200"},{"x":"125","y":"199"},{"x":"125","y":"198"},{"x":"125","y":"197"},{"x":"124","y":"197"},{"x":"122","y":"197"},{"x":"121","y":"198"},{"x":"120","y":"199"},{"x":"119","y":"199"},{"x":"118","y":"199"},{"x":"117","y":"199"},{"x":"116","y":"199"},{"x":"115","y":"199"},{"x":"114","y":"199"},{"x":"114","y":"198"},{"x":"113","y":"198"}]},{"style":"text","points":[{"x":"112","y":"204"},{"x":"0","y":"11"}],"value":"R`1"},{"style":"line","points":[{"x":"50","y":"50"},{"x":"90","y":"150"}]},{"style":"ellipse","points":[{"x":"150","y":"250"},{"x":"90","y":"150"}]}]}');
+                oItems = JSON.parse('{"backgroundImage": "", "items": []}');
+            }
 
-                  if(g_studyDesc !== undefined) {
-                      oInfo.setInit(g_studyDesc, oItems);
-                  }
-                  else {
-                      oInfo.setInit("", oItems);
-                  }
+            if(g_studyDesc !== undefined) {
+                oInfo.setInit(g_studyDesc, oItems);
+            }
+            else {
+                oInfo.setInit("", oItems);
+            }
 
-                  oInfo.draw();
+            oInfo.draw();
 
-                  window.addEventListener('resize', _this.onResizeWindow, false);
-                  oCanvas.addEventListener('mousedown', _this.onMouseDown, false);
-                  oCanvas.addEventListener('mouseup', _this.onMouseUp, false);
-                  oCanvas.addEventListener('mousemove', _this.onMouseMove, false);
+            window.addEventListener('resize', _this.onResizeWindow, false);
+            oCanvas.addEventListener('mousedown', _this.onMouseDown, false);
+            oCanvas.addEventListener('mouseup', _this.onMouseUp, false);
+            oCanvas.addEventListener('mousemove', _this.onMouseMove, false);
 
-                  _this.onResizeWindow();
-              }
+            _this.onResizeWindow();
+        }
 
-              /**
-               * function onPen
-               * Pen Draw Event
-               *
-               * Create by 김민정 on 2018-12-05 오전 10:27
-               * @param {}
-               * @return {}
-               **/
-              onPen() {
-                  oInfo._editMode = editMode.pen;
-              }
+        /**
+         * function onPen
+         * Pen Draw Event
+         *
+         * Create by 김민정 on 2018-12-05 오전 10:27
+         * @param {}
+         * @return {}
+         **/
+        onPen() {
+            oInfo._editMode = editMode.pen;
+        }
 
-              /**
-               * function onLine
-               * Line Draw Event
-               *
-               * Create by 김민정 on 2018-12-05 오전 10:26
-               * @param {}
-               * @return {}
-               **/
-              onLine() {
-                  oInfo._editMode = editMode.line;
-              }
+        /**
+         * function onLine
+         * Line Draw Event
+         *
+         * Create by 김민정 on 2018-12-05 오전 10:26
+         * @param {}
+         * @return {}
+         **/
+        onLine() {
+            oInfo._editMode = editMode.line;
+        }
 
-              /**
-               * function onEllipse
-               * Ellipse Draw Event
-               *
-               * Create by 김민정 on 2018-12-05 오전 10:26
-               * @param {}
-               * @return {}
-               **/
-              onEllipse() {
-                  oInfo._editMode = editMode.ellipse;
-              }
+        /**
+         * function onEllipse
+         * Ellipse Draw Event
+         *
+         * Create by 김민정 on 2018-12-05 오전 10:26
+         * @param {}
+         * @return {}
+         **/
+        onEllipse() {
+            oInfo._editMode = editMode.ellipse;
+        }
 
-              /**
-               * function onText
-               * Text Event
-               *
-               * Create by 김민정 on 2018-12-05 오전 10:27
-               * @param {}
-               * @return {}
-               **/
-              onText() {
-                  oInfo._editMode = editMode.text;
-              }
+        /**
+         * function onText
+         * Text Event
+         *
+         * Create by 김민정 on 2018-12-05 오전 10:27
+         * @param {}
+         * @return {}
+         **/
+        onText() {
+            oInfo._editMode = editMode.text;
+        }
 
-              /**
-               * function onSelect
-               * Select Event
-               *
-               * Create by 김민정 on 2018-12-05 오전 10:26
-               * @param {}
-               * @return {}
-               **/
-              onSelect() {
-                  oInfo._editMode = editMode.select;
-              }
+        /**
+         * function onSelect
+         * Select Event
+         *
+         * Create by 김민정 on 2018-12-05 오전 10:26
+         * @param {}
+         * @return {}
+         **/
+        onSelect() {
+            oInfo._editMode = editMode.select;
+        }
 
-              /**
-               * function onDelete
-               * Select Delete Event
-               *
-               * Create by 김민정 on 2018-12-05 오전 10:26
-               * @param {}
-               * @return {}
-               **/
-              onDelete() {
-                  alert("onDelete");
-              }
+        /**
+         * function onDelete
+         * Select Delete Event
+         *
+         * Create by 김민정 on 2018-12-05 오전 10:26
+         * @param {}
+         * @return {}
+         **/
+        onDelete() {
+            alert("onDelete");
+        }
 
-              /**
-               * function onReset
-               * All Reset Event
-               *
-               * Create by 김민정 on 2018-12-05 오전 10:26
-               * @param {}
-               * @return {}
-               **/
-              onReset() {
-                  alert("onReset");
-              }
+        /**
+         * function onReset
+         * All Reset Event
+         *
+         * Create by 김민정 on 2018-12-05 오전 10:26
+         * @param {}
+         * @return {}
+         **/
+        onReset() {
+            alert("onReset");
+        }
 
-          }
+      }
 
-          window.customElements.define(HhImageReport.is, HhImageReport);
-      })();
+      window.customElements.define(HhImageReport.is, HhImageReport);
+    })();
   </script>
 </dom-module>
