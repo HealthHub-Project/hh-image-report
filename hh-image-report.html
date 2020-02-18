@@ -222,7 +222,7 @@ Custom property | Description | Default
                     _this.$.backgroundImageTemplate.value = _this.comboItems[1];
                 }
 
-                g_imageReport = structImage.imageReport;
+              g_imageReport = JSON.parse(structImage.imageReport);
             }
             else {
                 g_imageReport = JSON.parse('{"backgroundImage": "", "items": []}');
