@@ -343,13 +343,13 @@ class ImageReport
             sStudyDesc = "";
         }
 
-        if (h.isEmpty(joItems) || h.isEmpty(joItems.items))
-        {
-            this._drawItems = JSON.parse('{"backgroundImage": "", "items": []}');
-        }
-        else {
-            this._drawItems = joItems;
-        }
+        // if (h.isEmpty(joItems) || h.isEmpty(joItems.items))
+        // {
+        //     this._drawItems = JSON.parse('{"backgroundImage": "", "items": []}');
+        // }
+        // else {
+        this._drawItems = joItems;
+        // }
 
         this._drawItems.backgroundImage = sStudyDesc;
 
